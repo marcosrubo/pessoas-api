@@ -1,12 +1,4 @@
 
-// Dados do Supabase
-// Organization: marcosrubo's Org
-// Project name: marcosrubo's Project
-// Database password: Senh@347asdfg
-// Nome do banco: postgres
-// Tabela: tbl_pessoas
-
-
 
 const express = require('express');
 const app = express();
@@ -19,7 +11,15 @@ let pessoas = [];
 
 // rota inicial
 app.get('/', (req, res) => {
-  res.send('API RuboWeb funcionando 🚀');
+
+  res.send(`
+  <h1>API RuboWeb 🚀</h1>
+  <p>Sistema funcionando!</p>
+  <p>Tecnologia envolvida:</p>
+  <p>VS Code → Node + Express → Git → GitHub → Render → Internet</p>
+  <p>Supabase (dados)</p>
+  `);
+
 });
 
 // listar pessoas
