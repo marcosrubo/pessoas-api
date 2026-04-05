@@ -111,10 +111,10 @@
       try {
 
         // para acesso local:
-        const resposta = await fetch('http://127.0.0.1:3000/pessoas');
+        // const resposta = await fetch('http://127.0.0.1:3000/pessoas');
         
         // para acesso web:
-        // const resposta = await fetch('https://pessoas-api.onrender.com/pessoas');
+        const resposta = await fetch('https://pessoas-api.onrender.com/pessoas');
 
         if (!resposta.ok) {
           throw new Error('Erro na requisição');
