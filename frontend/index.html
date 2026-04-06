@@ -13,51 +13,52 @@
       padding: 20px;
     }
 
-    h1 {
-      margin-bottom: 20px;
-    }
-
     table {
       border-collapse: collapse;
       width: 100%;
+      margin-top: 20px;
     }
 
     th, td {
       border: 1px solid #ccc;
       padding: 10px;
-      text-align: left;
+      cursor: pointer;
     }
 
     th {
       background-color: #f4f4f4;
+      cursor: default;
     }
 
-    #mensagem {
-      margin-top: 15px;
-      color: red;
+    input {
+      margin-bottom: 10px;
+      padding: 5px;
+      width: 250px;
+    }
+
+    button {
+      padding: 8px 12px;
+      margin-right: 5px;
     }
   </style>
 </head>
 
 <body>
 
-
-<!-- desenvolvendo Layout para tbl_pessoas -->    
-
 <h1>Lista de Pessoas</h1>
 
 <div>
-  <label>ID:</label>
-  <input type="text" id="id" readonly><br><br>
+  <label>ID:</label><br>
+  <input type="text" id="id" readonly><br>
 
-  <label>Nome:</label>
-  <input type="text" id="nome"><br><br>
+  <label>Nome:</label><br>
+  <input type="text" id="nome"><br>
 
-  <label>Idade:</label>
-  <input type="number" id="idade"><br><br>
+  <label>Idade:</label><br>
+  <input type="number" id="idade"><br>
 
-  <label>Última Atualização:</label>
-  <input type="text" id="atualizacao" readonly><br><br>
+  <label>Última Atualização:</label><br>
+  <input type="text" id="atualizacao" readonly><br>
 </div>
 
 <div>
@@ -69,7 +70,7 @@
 
 <hr>
 
-<table border="1">
+<table>
   <thead>
     <tr>
       <th>ID</th>
@@ -81,74 +82,166 @@
   <tbody id="tabela"></tbody>
 </table>
 
+<script>
 
+  // 🔥 DETECTA AUTOMATICAMENTE O AMBIENTE
+  const API_URL =
+    window.location.hostname === '127.0.0.1' ||
+    window.location.hostname === 'localhost'
+      ? 'http://127.0.0.1:3000/pessoas'
+      : 'https://pessoas-api.onrender.com/pessoas';
 
+  async function carregarPessoas() {
+    try {
+      const resposta = await fetch(API_URL);
 
+      if (!resposta.ok) {
+        throw new Error('Erro na requisição');
+      }
 
+      const dados = await resposta.json();
 
-<!-- primeio display da tbl_pessoas -->
-<!--
-  <h1>📋 Lista de Pessoas</h1>
+      const tbody = document.getElementById('tabela');
+      tbody.innerHTML = '';
 
-  <table id="tabela">
-    <thead>
-      <tr>
-        <th>ID</th>
-        <th>Nome</th>
-        <th>Idade</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
+      dados.forEach(pessoa => {
+        const linha = document.createElement('tr');
 
-  <p id="mensagem"></p>
--->
+        linha.innerHTML = `
+          <td>${pessoa.id}</td>
+          <td>${pessoa.nome}</td>
+          <td>${pessoa.idade}</td>
+          <td>${pessoa.updated_at ?? ''}</td>
+        `;
 
-
-
-  <script>
-    async function carregarPessoas() {
-      try {
-
-        // para acesso local:
-        // const resposta = await fetch('http://127.0.0.1:3000/pessoas');
-        
-        // para acesso web:
-        const resposta = await fetch('https://pessoas-api.onrender.com/pessoas');
-
-        if (!resposta.ok) {
-          throw new Error('Erro na requisição');
-        }
-
-        const dados = await resposta.json();
-
-        const tbody = document.querySelector('#tabela tbody');
-        tbody.innerHTML = '';
-
-        if (dados.length === 0) {
-          document.getElementById('mensagem').textContent = 'Nenhum registro encontrado.';
-          return;
-        }
-
-        dados.forEach(pessoa => {
-          const linha = `
-            <tr>
-              <td>${pessoa.id}</td>
-              <td>${pessoa.nome}</td>
-              <td>${pessoa.idade}</td>
-            </tr>
-          `;
-          tbody.innerHTML += linha;
+        linha.addEventListener('click', () => {
+          selecionarPessoa(pessoa);
         });
 
-      } catch (erro) {
-        console.error('Erro ao carregar pessoas:', erro);
-        document.getElementById('mensagem').textContent = 'Erro ao carregar os dados.';
-      }
-    }
+        tbody.appendChild(linha);
+      });
 
-    carregarPessoas();
-  </script>
+    } catch (erro) {
+      console.error('Erro ao carregar pessoas:', erro);
+      alert('Erro ao carregar dados.');
+    }
+  }
+
+  async function incluir() {
+    try {
+      const nome = document.getElementById('nome').value.trim();
+      const idade = document.getElementById('idade').value;
+
+      if (!nome || !idade) {
+        alert('Preencha nome e idade.');
+        return;
+      }
+
+      const resposta = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          nome,
+          idade: Number(idade)
+        })
+      });
+
+      if (!resposta.ok) {
+        throw new Error('Erro ao cadastrar');
+      }
+
+      limpar();
+      await carregarPessoas();
+
+      alert('Pessoa cadastrada!');
+    } catch (erro) {
+      console.error('Erro ao cadastrar:', erro);
+      alert('Erro ao cadastrar.');
+    }
+  }
+
+  async function salvar() {
+    try {
+      const id = document.getElementById('id').value;
+      const nome = document.getElementById('nome').value.trim();
+      const idade = document.getElementById('idade').value;
+
+      if (!id) {
+        alert('Selecione um registro.');
+        return;
+      }
+
+      const resposta = await fetch(`${API_URL}/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          nome,
+          idade: Number(idade)
+        })
+      });
+
+      if (!resposta.ok) {
+        throw new Error('Erro ao salvar');
+      }
+
+      limpar();
+      await carregarPessoas();
+
+      alert('Registro atualizado!');
+    } catch (erro) {
+      console.error('Erro ao salvar:', erro);
+      alert('Erro ao salvar.');
+    }
+  }
+
+  async function excluir() {
+    try {
+      const id = document.getElementById('id').value;
+
+      if (!id) {
+        alert('Selecione um registro.');
+        return;
+      }
+
+      if (!confirm('Deseja excluir?')) return;
+
+      const resposta = await fetch(`${API_URL}/${id}`, {
+        method: 'DELETE'
+      });
+
+      if (!resposta.ok) {
+        throw new Error('Erro ao excluir');
+      }
+
+      limpar();
+      await carregarPessoas();
+
+      alert('Registro excluído!');
+    } catch (erro) {
+      console.error('Erro ao excluir:', erro);
+      alert('Erro ao excluir.');
+    }
+  }
+
+  function selecionarPessoa(pessoa) {
+    document.getElementById('id').value = pessoa.id ?? '';
+    document.getElementById('nome').value = pessoa.nome ?? '';
+    document.getElementById('idade').value = pessoa.idade ?? '';
+    document.getElementById('atualizacao').value = pessoa.updated_at ?? '';
+  }
+
+  function limpar() {
+    document.getElementById('id').value = '';
+    document.getElementById('nome').value = '';
+    document.getElementById('idade').value = '';
+    document.getElementById('atualizacao').value = '';
+  }
+
+  carregarPessoas();
+
+</script>
 
 </body>
 </html>
+
+
