@@ -1,0 +1,982 @@
+
+
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cadastro de Pessoas</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: #f5f6fa;
+      color: #333;
+      padding: 30px;
+    }
+
+    .container {
+      max-width: 1150px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      margin-bottom: 20px;
+      color: #222;
+    }
+
+    .card {
+      background-color: #ffffff;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      margin-bottom: 20px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .campo {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .campo label {
+      font-weight: bold;
+      margin-bottom: 6px;
+      color: #444;
+    }
+
+    .campo input,
+    .campo select,
+    .busca-box input,
+    .paginacao select {
+      padding: 10px 12px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 15px;
+      background-color: #fff;
+    }
+
+    .campo input:focus,
+    .campo select:focus,
+    .busca-box input:focus,
+    .paginacao select:focus {
+      outline: none;
+      border-color: #4a90e2;
+      box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.15);
+    }
+
+    .acoes {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    button {
+      border: none;
+      border-radius: 6px;
+      padding: 10px 16px;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      opacity: 0.95;
+    }
+
+    button:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn-limpar {
+      background-color: #6c757d;
+      color: white;
+    }
+
+    .btn-cadastrar {
+      background-color: #198754;
+      color: white;
+    }
+
+    .btn-salvar {
+      background-color: #0d6efd;
+      color: white;
+    }
+
+    .btn-excluir {
+      background-color: #dc3545;
+      color: white;
+    }
+
+    .barra-superior-tabela {
+      display: flex;
+      justify-content: space-between;
+      align-items: end;
+      gap: 15px;
+      flex-wrap: wrap;
+      margin-bottom: 15px;
+    }
+
+    .busca-box {
+      flex: 1;
+      min-width: 260px;
+    }
+
+    .busca-box label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 6px;
+      color: #444;
+    }
+
+    .contador {
+      font-size: 14px;
+      color: #555;
+      font-weight: bold;
+      white-space: nowrap;
+    }
+
+    .tabela-wrapper {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background-color: white;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    thead {
+      background-color: #e9ecef;
+    }
+
+    th, td {
+      padding: 12px 14px;
+      border-bottom: 1px solid #e5e5e5;
+      text-align: left;
+    }
+
+    th {
+      color: #333;
+      font-size: 14px;
+    }
+
+    th.ordenavel {
+      cursor: pointer;
+      user-select: none;
+    }
+
+    th.ordenavel:hover {
+      background-color: #dde2e6;
+    }
+
+    tbody tr {
+      cursor: pointer;
+      transition: background-color 0.15s ease-in-out;
+    }
+
+    tbody tr:hover {
+      background-color: #f8f9fa;
+    }
+
+    tbody tr.linha-selecionada {
+      background-color: #fff3cd;
+    }
+
+    tbody tr.linha-selecionada td {
+      font-weight: bold;
+    }
+
+    tbody tr.linha-selecionada td:first-child {
+      box-shadow: inset 5px 0 0 #ff9800;
+    }
+
+    .sem-registros {
+      text-align: center;
+      color: #777;
+      padding: 25px;
+      font-style: italic;
+    }
+
+    .status {
+      margin-top: 12px;
+      font-size: 14px;
+      color: #666;
+    }
+
+    .icone-ordenacao {
+      display: inline-block;
+      width: 18px;
+      text-align: center;
+      font-weight: bold;
+    }
+
+    .paginacao {
+      margin-top: 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .paginacao-esquerda,
+    .paginacao-direita {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .paginacao-info {
+      font-size: 14px;
+      color: #555;
+      font-weight: bold;
+    }
+
+    .btn-pagina {
+      background-color: #e9ecef;
+      color: #333;
+      padding: 9px 14px;
+    }
+
+    .btn-pagina:hover:not(:disabled) {
+      background-color: #dfe4ea;
+    }
+
+    .emoji {
+      font-size: 15px;
+      line-height: 1;
+    }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background-color: rgba(0, 0, 0, 0.45);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      z-index: 9999;
+    }
+
+    .modal-overlay.ativo {
+      display: flex;
+    }
+
+    .modal {
+      width: 100%;
+      max-width: 420px;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+      overflow: hidden;
+      animation: aparecerModal 0.18s ease-out;
+    }
+
+    @keyframes aparecerModal {
+      from {
+        transform: translateY(8px);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .modal-topo {
+      padding: 16px 20px;
+      font-weight: bold;
+      font-size: 18px;
+      color: #fff;
+    }
+
+    .modal-topo.info {
+      background-color: #0d6efd;
+    }
+
+    .modal-topo.sucesso {
+      background-color: #198754;
+    }
+
+    .modal-topo.erro {
+      background-color: #dc3545;
+    }
+
+    .modal-topo.confirmacao {
+      background-color: #ff9800;
+    }
+
+    .modal-corpo {
+      padding: 20px;
+      font-size: 15px;
+      line-height: 1.5;
+      color: #333;
+    }
+
+    .modal-acoes {
+      padding: 0 20px 20px 20px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn-modal {
+      min-width: 100px;
+      justify-content: center;
+    }
+
+    .btn-modal-secundario {
+      background-color: #6c757d;
+      color: #fff;
+    }
+
+    .btn-modal-principal {
+      background-color: #0d6efd;
+      color: #fff;
+    }
+
+    .btn-modal-perigo {
+      background-color: #dc3545;
+      color: #fff;
+    }
+
+    @media (max-width: 700px) {
+      body {
+        padding: 15px;
+      }
+
+      h1 {
+        font-size: 24px;
+      }
+
+      th, td {
+        font-size: 14px;
+        padding: 10px;
+      }
+
+      .acoes {
+        flex-direction: column;
+      }
+
+      .acoes button {
+        width: 100%;
+        justify-content: center;
+      }
+
+      .paginacao {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .paginacao-esquerda,
+      .paginacao-direita {
+        justify-content: center;
+      }
+
+      .modal-acoes {
+        flex-direction: column;
+      }
+
+      .btn-modal {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Cadastro de Pessoas</h1>
+
+    <div class="card">
+      <div class="form-grid">
+        <div class="campo">
+          <label for="id">ID</label>
+          <input type="text" id="id" readonly>
+        </div>
+
+        <div class="campo">
+          <label for="nome">Nome</label>
+          <input type="text" id="nome">
+        </div>
+
+        <div class="campo">
+          <label for="idade">Idade</label>
+          <input type="number" id="idade">
+        </div>
+
+        <div class="campo">
+          <label for="atualizacao">Última Atualização</label>
+          <input type="text" id="atualizacao" readonly>
+        </div>
+      </div>
+
+      <div class="acoes">
+        <button class="btn-limpar" onclick="limpar()">
+          <span class="emoji">🧹</span>
+          <span>Limpar</span>
+        </button>
+
+        <button class="btn-cadastrar" onclick="incluir()">
+          <span class="emoji">➕</span>
+          <span>Cadastrar</span>
+        </button>
+
+        <button class="btn-salvar" onclick="salvar()">
+          <span class="emoji">💾</span>
+          <span>Salvar</span>
+        </button>
+
+        <button class="btn-excluir" onclick="excluir()">
+          <span class="emoji">🗑️</span>
+          <span>Excluir</span>
+        </button>
+      </div>
+
+      <div class="status" id="status">Selecione um registro para editar.</div>
+    </div>
+
+    <div class="card">
+      <div class="barra-superior-tabela">
+        <div class="busca-box">
+          <label for="buscaNome">Buscar por nome</label>
+          <input
+            type="text"
+            id="buscaNome"
+            placeholder="Digite parte do nome..."
+            oninput="filtrarTabela()"
+          >
+        </div>
+
+        <div class="contador" id="contadorRegistros">0 registro(s)</div>
+      </div>
+
+      <div class="tabela-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 80px;">ID</th>
+              <th class="ordenavel" onclick="ordenarPor('nome')">
+                Nome <span class="icone-ordenacao" id="icone-nome"></span>
+              </th>
+              <th class="ordenavel" onclick="ordenarPor('idade')" style="width: 120px;">
+                Idade <span class="icone-ordenacao" id="icone-idade"></span>
+              </th>
+              <th style="width: 280px;">Atualização</th>
+            </tr>
+          </thead>
+          <tbody id="tabela"></tbody>
+        </table>
+      </div>
+
+      <div class="paginacao">
+        <div class="paginacao-esquerda">
+          <label for="itensPorPagina"><strong>Itens por página:</strong></label>
+          <select id="itensPorPagina" onchange="alterarItensPorPagina()">
+            <option value="5">5</option>
+            <option value="10" selected>10</option>
+            <option value="20">20</option>
+            <option value="50">50</option>
+          </select>
+        </div>
+
+        <div class="paginacao-info" id="infoPaginacao">
+          Página 1 de 1
+        </div>
+
+        <div class="paginacao-direita">
+          <button class="btn-pagina" id="btnPrimeira" onclick="irParaPrimeiraPagina()">⏮ Primeira</button>
+          <button class="btn-pagina" id="btnAnterior" onclick="irParaPaginaAnterior()">◀ Anterior</button>
+          <button class="btn-pagina" id="btnProxima" onclick="irParaProximaPagina()">Próxima ▶</button>
+          <button class="btn-pagina" id="btnUltima" onclick="irParaUltimaPagina()">Última ⏭</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal">
+      <div class="modal-topo info" id="modalTopo">Mensagem</div>
+      <div class="modal-corpo" id="modalMensagem">Texto da mensagem</div>
+      <div class="modal-acoes" id="modalAcoes"></div>
+    </div>
+  </div>
+
+  <script>
+    const API_URL =
+      window.location.hostname === '127.0.0.1' ||
+      window.location.hostname === 'localhost'
+        ? 'http://127.0.0.1:3000/pessoas'
+        : 'https://pessoas-api.onrender.com/pessoas';
+
+    let pessoas = [];
+    let idSelecionado = null;
+    let campoOrdenacao = null;
+    let direcaoOrdenacao = 'asc';
+
+    let paginaAtual = 1;
+    let itensPorPagina = 10;
+    let listaAtualFiltrada = [];
+
+    function setStatus(mensagem) {
+      document.getElementById('status').textContent = mensagem;
+    }
+
+    function formatarValor(valor) {
+      return valor ?? '';
+    }
+
+    function atualizarContador(quantidade) {
+      document.getElementById('contadorRegistros').textContent = `${quantidade} registro(s) encontrado(s)`;
+    }
+
+    function obterTextoBusca() {
+      return document.getElementById('buscaNome').value.trim().toLowerCase();
+    }
+
+    function atualizarIconesOrdenacao() {
+      document.getElementById('icone-nome').textContent = '';
+      document.getElementById('icone-idade').textContent = '';
+
+      if (!campoOrdenacao) return;
+
+      const icone = direcaoOrdenacao === 'asc' ? '↑' : '↓';
+
+      if (campoOrdenacao === 'nome') {
+        document.getElementById('icone-nome').textContent = icone;
+      }
+
+      if (campoOrdenacao === 'idade') {
+        document.getElementById('icone-idade').textContent = icone;
+      }
+    }
+
+    function ordenarPor(campo) {
+      if (campoOrdenacao === campo) {
+        direcaoOrdenacao = direcaoOrdenacao === 'asc' ? 'desc' : 'asc';
+      } else {
+        campoOrdenacao = campo;
+        direcaoOrdenacao = 'asc';
+      }
+
+      paginaAtual = 1;
+      filtrarTabela();
+    }
+
+    function obterListaFiltradaOrdenada() {
+      const textoBusca = obterTextoBusca();
+
+      let lista = pessoas.filter((pessoa) => {
+        const nome = String(pessoa.nome ?? '').toLowerCase();
+        return nome.includes(textoBusca);
+      });
+
+      if (campoOrdenacao) {
+        lista.sort((a, b) => {
+          let valorA = a[campoOrdenacao];
+          let valorB = b[campoOrdenacao];
+
+          if (campoOrdenacao === 'nome') {
+            valorA = String(valorA ?? '').toLowerCase();
+            valorB = String(valorB ?? '').toLowerCase();
+          } else if (campoOrdenacao === 'idade') {
+            valorA = Number(valorA ?? 0);
+            valorB = Number(valorB ?? 0);
+          }
+
+          if (valorA < valorB) return direcaoOrdenacao === 'asc' ? -1 : 1;
+          if (valorA > valorB) return direcaoOrdenacao === 'asc' ? 1 : -1;
+          return 0;
+        });
+      }
+
+      return lista;
+    }
+
+    function renderizarTabela(listaPaginada) {
+      const tbody = document.getElementById('tabela');
+      tbody.innerHTML = '';
+
+      if (listaPaginada.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="4" class="sem-registros">Nenhum registro encontrado.</td>
+          </tr>
+        `;
+        atualizarIconesOrdenacao();
+        return;
+      }
+
+      listaPaginada.forEach((pessoa) => {
+        const linha = document.createElement('tr');
+
+        if (String(pessoa.id) === String(idSelecionado)) {
+          linha.classList.add('linha-selecionada');
+        }
+
+        linha.innerHTML = `
+          <td>${formatarValor(pessoa.id)}</td>
+          <td>${formatarValor(pessoa.nome)}</td>
+          <td>${formatarValor(pessoa.idade)}</td>
+          <td>${formatarValor(pessoa.updated_at)}</td>
+        `;
+
+        linha.addEventListener('click', () => {
+          selecionarPessoa(pessoa);
+        });
+
+        tbody.appendChild(linha);
+      });
+
+      atualizarIconesOrdenacao();
+    }
+
+    function atualizarPaginacao() {
+      const totalItens = listaAtualFiltrada.length;
+      const totalPaginas = Math.max(1, Math.ceil(totalItens / itensPorPagina));
+
+      if (paginaAtual > totalPaginas) {
+        paginaAtual = totalPaginas;
+      }
+
+      const inicio = (paginaAtual - 1) * itensPorPagina;
+      const fim = inicio + itensPorPagina;
+      const listaPaginada = listaAtualFiltrada.slice(inicio, fim);
+
+      renderizarTabela(listaPaginada);
+
+      document.getElementById('infoPaginacao').textContent =
+        `Página ${paginaAtual} de ${totalPaginas}`;
+
+      document.getElementById('btnPrimeira').disabled = paginaAtual === 1;
+      document.getElementById('btnAnterior').disabled = paginaAtual === 1;
+      document.getElementById('btnProxima').disabled = paginaAtual === totalPaginas;
+      document.getElementById('btnUltima').disabled = paginaAtual === totalPaginas;
+    }
+
+    function filtrarTabela() {
+      listaAtualFiltrada = obterListaFiltradaOrdenada();
+      atualizarContador(listaAtualFiltrada.length);
+
+      const totalPaginas = Math.max(1, Math.ceil(listaAtualFiltrada.length / itensPorPagina));
+      if (paginaAtual > totalPaginas) {
+        paginaAtual = totalPaginas;
+      }
+
+      atualizarPaginacao();
+
+      const textoBuscaOriginal = document.getElementById('buscaNome').value.trim();
+
+      if (textoBuscaOriginal) {
+        setStatus(`Filtro aplicado para: "${textoBuscaOriginal}"`);
+      } else if (!idSelecionado) {
+        setStatus('Lista exibida completa.');
+      }
+    }
+
+    function alterarItensPorPagina() {
+      itensPorPagina = Number(document.getElementById('itensPorPagina').value);
+      paginaAtual = 1;
+      filtrarTabela();
+    }
+
+    function irParaPrimeiraPagina() {
+      paginaAtual = 1;
+      atualizarPaginacao();
+    }
+
+    function irParaPaginaAnterior() {
+      if (paginaAtual > 1) {
+        paginaAtual--;
+        atualizarPaginacao();
+      }
+    }
+
+    function irParaProximaPagina() {
+      const totalPaginas = Math.max(1, Math.ceil(listaAtualFiltrada.length / itensPorPagina));
+      if (paginaAtual < totalPaginas) {
+        paginaAtual++;
+        atualizarPaginacao();
+      }
+    }
+
+    function irParaUltimaPagina() {
+      paginaAtual = Math.max(1, Math.ceil(listaAtualFiltrada.length / itensPorPagina));
+      atualizarPaginacao();
+    }
+
+    function abrirModal({ titulo, mensagem, tipo = 'info', botoes = [] }) {
+      const overlay = document.getElementById('modalOverlay');
+      const topo = document.getElementById('modalTopo');
+      const texto = document.getElementById('modalMensagem');
+      const acoes = document.getElementById('modalAcoes');
+
+      topo.className = `modal-topo ${tipo}`;
+      topo.textContent = titulo;
+      texto.textContent = mensagem;
+      acoes.innerHTML = '';
+
+      botoes.forEach((botao) => {
+        const btn = document.createElement('button');
+        btn.className = `btn-modal ${botao.classe}`;
+        btn.textContent = botao.texto;
+        btn.addEventListener('click', () => {
+          fecharModal();
+          if (typeof botao.acao === 'function') {
+            botao.acao();
+          }
+        });
+        acoes.appendChild(btn);
+      });
+
+      overlay.classList.add('ativo');
+    }
+
+    function fecharModal() {
+      document.getElementById('modalOverlay').classList.remove('ativo');
+    }
+
+    function mostrarMensagem(titulo, mensagem, tipo = 'info') {
+      abrirModal({
+        titulo,
+        mensagem,
+        tipo,
+        botoes: [
+          {
+            texto: 'OK',
+            classe: 'btn-modal-principal',
+            acao: null
+          }
+        ]
+      });
+    }
+
+    function pedirConfirmacao(titulo, mensagem) {
+      return new Promise((resolve) => {
+        abrirModal({
+          titulo,
+          mensagem,
+          tipo: 'confirmacao',
+          botoes: [
+            {
+              texto: 'Cancelar',
+              classe: 'btn-modal-secundario',
+              acao: () => resolve(false)
+            },
+            {
+              texto: 'Confirmar',
+              classe: 'btn-modal-perigo',
+              acao: () => resolve(true)
+            }
+          ]
+        });
+      });
+    }
+
+    async function carregarPessoas() {
+      try {
+        const resposta = await fetch(API_URL);
+
+        if (!resposta.ok) {
+          throw new Error('Erro na requisição');
+        }
+
+        pessoas = await resposta.json();
+        filtrarTabela();
+
+        if (!idSelecionado) {
+          setStatus('Lista carregada com sucesso.');
+        }
+      } catch (erro) {
+        console.error('Erro ao carregar pessoas:', erro);
+        mostrarMensagem('Erro', 'Erro ao carregar dados.', 'erro');
+        setStatus('Erro ao carregar a lista.');
+      }
+    }
+
+    async function incluir() {
+      try {
+        const nome = document.getElementById('nome').value.trim();
+        const idade = document.getElementById('idade').value;
+
+        if (!nome || !idade) {
+          mostrarMensagem('Atenção', 'Preencha nome e idade.', 'info');
+          return;
+        }
+
+        const resposta = await fetch(API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            nome,
+            idade: Number(idade)
+          })
+        });
+
+        if (!resposta.ok) {
+          throw new Error('Erro ao cadastrar');
+        }
+
+        limpar(false);
+        await carregarPessoas();
+
+        mostrarMensagem('Sucesso', 'Pessoa cadastrada com sucesso!', 'sucesso');
+        setStatus('Pessoa cadastrada com sucesso.');
+      } catch (erro) {
+        console.error('Erro ao cadastrar:', erro);
+        mostrarMensagem('Erro', 'Erro ao cadastrar.', 'erro');
+        setStatus('Erro ao cadastrar pessoa.');
+      }
+    }
+
+    async function salvar() {
+      try {
+        const id = document.getElementById('id').value;
+        const nome = document.getElementById('nome').value.trim();
+        const idade = document.getElementById('idade').value;
+
+        if (!id) {
+          mostrarMensagem('Atenção', 'Selecione um registro.', 'info');
+          return;
+        }
+
+        if (!nome || !idade) {
+          mostrarMensagem('Atenção', 'Preencha nome e idade.', 'info');
+          return;
+        }
+
+        const resposta = await fetch(`${API_URL}/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            nome,
+            idade: Number(idade)
+          })
+        });
+
+        if (!resposta.ok) {
+          throw new Error('Erro ao salvar');
+        }
+
+        limpar(false);
+        await carregarPessoas();
+
+        mostrarMensagem('Sucesso', 'Registro atualizado com sucesso!', 'sucesso');
+        setStatus('Registro atualizado com sucesso.');
+      } catch (erro) {
+        console.error('Erro ao salvar:', erro);
+        mostrarMensagem('Erro', 'Erro ao salvar.', 'erro');
+        setStatus('Erro ao salvar registro.');
+      }
+    }
+
+    async function excluir() {
+      try {
+        const id = document.getElementById('id').value;
+
+        if (!id) {
+          mostrarMensagem('Atenção', 'Selecione um registro.', 'info');
+          return;
+        }
+
+        const confirmado = await pedirConfirmacao(
+          'Confirmar exclusão',
+          'Deseja realmente excluir este registro?'
+        );
+
+        if (!confirmado) {
+          setStatus('Exclusão cancelada.');
+          return;
+        }
+
+        const resposta = await fetch(`${API_URL}/${id}`, {
+          method: 'DELETE'
+        });
+
+        if (!resposta.ok) {
+          throw new Error('Erro ao excluir');
+        }
+
+        limpar(false);
+        await carregarPessoas();
+
+        mostrarMensagem('Sucesso', 'Registro excluído com sucesso!', 'sucesso');
+        setStatus('Registro excluído com sucesso.');
+      } catch (erro) {
+        console.error('Erro ao excluir:', erro);
+        mostrarMensagem('Erro', 'Erro ao excluir.', 'erro');
+        setStatus('Erro ao excluir registro.');
+      }
+    }
+
+    function selecionarPessoa(pessoa) {
+      idSelecionado = pessoa.id ?? null;
+
+      document.getElementById('id').value = pessoa.id ?? '';
+      document.getElementById('nome').value = pessoa.nome ?? '';
+      document.getElementById('idade').value = pessoa.idade ?? '';
+      document.getElementById('atualizacao').value = pessoa.updated_at ?? '';
+
+      filtrarTabela();
+      setStatus(`Registro ID ${pessoa.id} selecionado para edição.`);
+    }
+
+    function limpar(mensagem = true) {
+      idSelecionado = null;
+
+      document.getElementById('id').value = '';
+      document.getElementById('nome').value = '';
+      document.getElementById('idade').value = '';
+      document.getElementById('atualizacao').value = '';
+
+      filtrarTabela();
+
+      if (mensagem) {
+        setStatus('Campos limpos. Nenhum registro selecionado.');
+      }
+    }
+
+    document.getElementById('modalOverlay').addEventListener('click', (event) => {
+      if (event.target.id === 'modalOverlay') {
+        fecharModal();
+      }
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') {
+        fecharModal();
+      }
+    });
+
+    carregarPessoas();
+  </script>
+</body>
+</html>
+
+
